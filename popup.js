@@ -202,6 +202,9 @@ function updateToggleStates() {
 function showStatus(el, message, type) {
   el.textContent = message;
   el.className = 'status ' + type;
+  // Scroll into view in case the status sits below the popup's viewport,
+  // which can happen once the body hits Chrome's max popup height.
+  el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   setTimeout(() => { el.className = 'status'; }, 3000);
 }
 
