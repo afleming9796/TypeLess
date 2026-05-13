@@ -22,6 +22,8 @@ const phraseSearch = $('#phrase-search');
 const corpusStatus = $('#corpus-status');
 const btnExportPhrases = $('#btn-export-phrases');
 const btnExportLinks = $('#btn-export-links');
+const btnExportAll = $('#btn-export-all');
+const backupStatus = $('#backup-status');
 const linkSearch = $('#link-search');
 const btnClearLinks = $('#btn-clear-links');
 
@@ -200,6 +202,9 @@ function updateToggleStates() {
 function showStatus(el, message, type) {
   el.textContent = message;
   el.className = 'status ' + type;
+  // Scroll into view in case the status sits below the popup's viewport,
+  // which can happen once the body hits Chrome's max popup height.
+  el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   setTimeout(() => { el.className = 'status'; }, 3000);
 }
 
@@ -353,6 +358,32 @@ btnSaveSettings.addEventListener('click', () => {
 });
 
 $('#set-enabled').addEventListener('change', updateToggleStates);
+
+// ── Settings: Backup All ──────────────────────────────────
+
+btnExportAll.addEventListener('click', async () => {
+  const phrasesText = corpus.exportText();
+  const linksText = corpus.linkRules.exportText();
+
+  if (!phrasesText && !linksText) {
+    showStatus(backupStatus, 'Nothing to copy', 'error');
+    return;
+  }
+
+  const sections = [];
+  if (phrasesText) sections.push(`# Phrases\n\n${phrasesText}`);
+  if (linksText) sections.push(`# Links\n\n${linksText}`);
+
+  await navigator.clipboard.writeText(sections.join('\n\n'));
+
+  const phraseCount = corpus.phrases.size;
+  const linkCount = corpus.linkRules.rules.size;
+  showStatus(
+    backupStatus,
+    `✓ Copied ${phraseCount} phrase${phraseCount === 1 ? '' : 's'} and ${linkCount} link rule${linkCount === 1 ? '' : 's'}`,
+    'success'
+  );
+});
 
 // ── Start ──────────────────────────────────────────────────
 
